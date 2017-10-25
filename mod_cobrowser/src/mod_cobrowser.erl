@@ -33,7 +33,7 @@ on_user_send_packet({#presence{
 
       Jid = binary_to_list(jlib:jid_to_string(From)),
       BareJid = string:sub_string(Jid,1,string:str(Jid,"/")-1),
-      send_availability(BareJid, Type, Show),
+      send_availability(BareJid, Type, Show, undefined),
     {Pkt, State};
 on_user_send_packet({#presence{
                         from = From,
@@ -42,7 +42,8 @@ on_user_send_packet({#presence{
 
       Jid = binary_to_list(jlib:jid_to_string(From)),
       BareJid = string:sub_string(Jid,1,string:str(Jid,"/")-1),
-      send_availability(BareJid, Type, Show),
+      Resource = string:sub_string(Jid,string:str(Jid,"/")+1),
+      send_availability(BareJid, Type, Show, Resource),
     {Pkt, State};
 on_user_send_packet(Acc) ->
     Acc.
@@ -51,17 +52,17 @@ on_disconnect(Sid, Jid, Info ) ->
     StrJid = binary_to_list(jlib:jid_to_string(Jid)),
     BareJid = string:sub_string(StrJid,1,string:str(StrJid,"/")-1),
     ?DEBUG("(mod_cobrowser)onDisconnect: ~p, ~p, ~p", [ Sid, BareJid, Info]),
-    send_availability(BareJid, unavailable, undefined),
+    send_availability(BareJid, unavailable, undefined, undefined),
 
     ok.
 
-send_availability(Jid, Type, Show) ->
+send_availability(Jid, Type, Show, Resource) ->
       APIHost = getenv("NGINX_INTERNAL_SERVICE_HOST", "nginx-internal.default.svc.cluster.local"),
       APIEndpoint = "http://" ++ APIHost ++ "/api/app.php/internal/user-presence.json",
       ShowString = lists:flatten(io_lib:format("~p", [ Show])),
       TypeString = lists:flatten(io_lib:format("~p", [ Type])),
       ?DEBUG("sending packet: ~p type: ~p show: ~p api: ~p", [ Jid, Type, Show, APIEndpoint]),
-      URL = "jid=" ++ Jid ++ "&type=" ++ TypeString ++ "&show=" ++ ShowString,
+      URL = "jid=" ++ Jid ++ "&type=" ++ TypeString ++ "&show=" ++ ShowString ++ "&resource=" ++ Resource,
       R = httpc:request(post, {
           APIEndpoint,
           [],
