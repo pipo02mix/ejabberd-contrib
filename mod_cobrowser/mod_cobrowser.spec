@@ -1,0 +1,5 @@
+author: "Fernando Ripoll <fernando at cobrowser.net>"
+category: "admin"
+summary: "Availablibtyl"
+home: "https://github.com/processone/ejabberd-contrib/tree/master/"
+url: "git@github.com:processone/ejabberd-contrib.git"
